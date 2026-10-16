@@ -1,0 +1,838 @@
+[index.html](https://github.com/user-attachments/files/33545120/index.html)
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Design direction for For The War: a persistent multiplayer grand strategy RTS.">
+<meta property="og:title" content="For The War Design Direction">
+<meta property="og:description" content="Pillars, core loop, economy, movement, art direction, roadmap and open decisions.">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>For The War Design Direction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a war-room briefing — sticky section rail, one wide column of
+   briefing sections, each pairing a short statement with one working
+   instrument (loop dial, tile explorer, movement board, zoom gauge). */
+:root {
+  --bg: #e7e9e3;          /* survey-paper grey-green */
+  --surface: #f4f5f1;
+  --ink: #1b1f22;
+  --muted: #59626a;
+  --line: #c6cbc3;
+  --accent: #a65a17;      /* low amber sun */
+  --accent-soft: #a65a1722;
+  --res: #3f9c50; --com: #3b7fcf; --ind: #c07f1c; --prod: #c2443a;
+  --ok: #3f8a5b; --part: #b2861d; --none: #8a8f94; --open: #8a5a9a;
+  --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Public Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171a; --surface: #1b1f23; --ink: #e5e2da; --muted: #9aa1a7; --line: #2d3338;
+    --accent: #e3a258; --accent-soft: #e3a25826;
+    --res: #62c271; --com: #6aa6ee; --ind: #e8b04e; --prod: #e3675a;
+    --ok: #5fb07c; --part: #d9ac3f; --none: #7b8187; --open: #b585c4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171a; --surface: #1b1f23; --ink: #e5e2da; --muted: #9aa1a7; --line: #2d3338;
+  --accent: #e3a258; --accent-soft: #e3a25826;
+  --res: #62c271; --com: #6aa6ee; --ind: #e8b04e; --prod: #e3675a;
+  --ok: #5fb07c; --part: #d9ac3f; --none: #7b8187; --open: #b585c4;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: 0.01em; }
+h2 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; text-transform: uppercase; line-height: 1; }
+h3 { font-size: 22px; font-weight: 600; text-transform: uppercase; line-height: 1.1; }
+p { margin: 0; max-width: 65ch; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* rail */
+.rail { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--bg); border-bottom: 1px solid var(--line); }
+.rail .wrap { display: flex; gap: 4px; overflow-x: auto; padding-block: 10px; scrollbar-width: none; }
+.rail a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: var(--radius); white-space: nowrap; }
+.rail a:hover, .rail a.on { color: var(--ink); background: var(--accent-soft); }
+.rail .mark { font-family: var(--display); font-weight: 800; font-size: 18px; color: var(--accent); padding: 2px 10px 2px 0; text-decoration: none; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+
+/* hero */
+.hero { padding-block: 48px 36px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 36px; align-items: center; }
+.hero h1 { font-size: clamp(54px, 10vw, 112px); font-weight: 800; text-transform: uppercase; line-height: 0.86; }
+.hero h1 span { color: var(--accent); }
+.hero .thesis { font-size: 19px; margin-top: 20px; }
+.hero .meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 22px; }
+.hero .meta div { display: flex; flex-direction: column; }
+.hero .meta b { font-family: var(--mono); font-weight: 500; font-size: 13px; }
+#heroMap { width: 100%; max-width: 100%; height: auto; display: block; }
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; padding-block: 28px 20px; } }
+
+section.brief { padding-block: 44px; border-top: 1px solid var(--line); scroll-margin-top: 56px; }
+.brief-head { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px 24px; margin-bottom: 26px; }
+.brief-head .label { padding-top: 10px; }
+.brief-head p { margin-top: 10px; color: var(--muted); }
+@media (max-width: 760px) { .brief-head { grid-template-columns: 1fr; } .brief-head .label { padding-top: 0; } }
+
+/* pillars */
+.pillars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.pillar { background: var(--surface); padding: 18px 16px; text-align: left; border: 0; display: flex; flex-direction: column; gap: 10px; min-height: 100%; }
+.pillar .num { font-family: var(--display); font-weight: 800; font-size: 40px; color: var(--accent); line-height: 0.8; }
+.pillar p { font-size: 14px; color: var(--muted); }
+.pillar .now { font-size: 13px; border-top: 1px dashed var(--line); padding-top: 10px; margin-top: auto; }
+@media (max-width: 900px) { .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pillar:last-child { grid-column: 1 / -1; } }
+@media (max-width: 480px) { .pillars { grid-template-columns: 1fr; } }
+
+/* loop */
+.loop { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 32px; align-items: center; }
+#loopSvg { width: 100%; max-width: 360px; height: auto; display: block; margin: 0 auto; }
+#loopSvg .node { cursor: pointer; }
+#loopSvg .node circle { fill: var(--surface); stroke: var(--line); stroke-width: 2; transition: stroke 0.2s; }
+#loopSvg .node text { fill: var(--ink); font-family: var(--mono); font-size: 11px; text-anchor: middle; }
+#loopSvg .node.on circle { stroke: var(--accent); stroke-width: 3; fill: var(--accent-soft); }
+#loopSvg .ring { fill: none; stroke: var(--line); stroke-width: 2; stroke-dasharray: 4 6; }
+#loopSvg .hub { fill: var(--muted); font-family: var(--display); font-size: 22px; font-weight: 800; text-anchor: middle; text-transform: uppercase; }
+.loop-detail { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: grid; gap: 12px; }
+.loop-detail .step { font-family: var(--mono); color: var(--accent); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; display: inline-flex; align-items: center; gap: 6px; }
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--none)); }
+.chip.built { --c: var(--ok); } .chip.part { --c: var(--part); } .chip.none { --c: var(--none); } .chip.open { --c: var(--open); }
+@media (max-width: 760px) { .loop { grid-template-columns: 1fr; } }
+
+/* layers */
+.layers { display: grid; gap: 10px; }
+.layer { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.layer h3 { font-size: 20px; }
+.layer .label { margin-top: 4px; }
+@media (max-width: 560px) { .layer { grid-template-columns: 1fr; } }
+
+/* economy explorer */
+.econ { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--surface); padding: 8px 12px; border-radius: var(--radius); font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
+.seg button .sw { width: 10px; height: 10px; border-radius: 2px; background: var(--z); }
+.seg button[aria-pressed="true"] { border-color: var(--z, var(--accent)); box-shadow: inset 0 -3px 0 var(--z, var(--accent)); }
+.seg button:disabled { opacity: 0.4; cursor: default; }
+.econ-card { display: grid; gap: 14px; }
+.econ-card .out { font-family: var(--display); font-size: 34px; font-weight: 800; text-transform: uppercase; line-height: 1; color: var(--z); }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 14px; }
+.kv dt { color: var(--muted); font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+.kv dd { margin: 0; }
+#tileSvg { width: 100%; max-width: 100%; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.note { font-size: 13px; color: var(--muted); }
+@media (max-width: 760px) { .econ { grid-template-columns: 1fr; } }
+
+/* movement */
+.move { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+#moveSvg { width: 100%; max-width: 100%; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+#moveSvg .edge { stroke: var(--line); stroke-width: 2.5; }
+#moveSvg .tile { fill: var(--bg); stroke: var(--muted); stroke-width: 1.5; }
+#moveSvg .city { fill: var(--accent); }
+#moveSvg .path { fill: none; stroke: var(--ink); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+#moveSvg .range { fill: var(--accent-soft); stroke: var(--accent); stroke-dasharray: 5 5; }
+@media (max-width: 760px) { .move { grid-template-columns: 1fr; } }
+
+/* zoom gauge */
+.zoom { display: grid; gap: 18px; }
+.zoom-ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.zoom-ctrl input[type="range"] { flex: 1 1 260px; accent-color: var(--accent); }
+.zoom-ctrl .reading { font-family: var(--mono); font-size: 22px; min-width: 9ch; }
+.bands { display: grid; gap: 6px; }
+.band { display: grid; grid-template-columns: 190px minmax(0, 1fr) 70px; gap: 12px; align-items: center; font-size: 14px; }
+.band .bar { position: relative; height: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.band .fill { position: absolute; top: 0; bottom: 0; background: var(--accent-soft); border-left: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+.band .cursor { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); }
+.band .state { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; text-align: right; color: var(--muted); }
+.band.vis .state { color: var(--ok); }
+.band.fading .state { color: var(--part); }
+@media (max-width: 560px) { .band { grid-template-columns: minmax(0, 1fr) 64px; } .band .bar { grid-column: 1 / -1; grid-row: 2; } }
+
+/* art */
+.art { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.swatch { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); font-size: 12px; }
+.swatch i { display: block; height: 46px; }
+.swatch div { padding: 6px 8px; display: grid; }
+.swatch b { font-weight: 600; }
+.principles { display: grid; gap: 8px; }
+.principle { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; }
+.principle b { display: block; }
+.principle span { color: var(--muted); font-size: 14px; }
+.refs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+@media (max-width: 760px) { .art { grid-template-columns: 1fr; } }
+
+/* systems */
+.sys-filter { margin-bottom: 14px; }
+.systems { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.sys { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 16px; display: grid; gap: 8px; align-content: start; }
+.sys .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sys .letter { font-family: var(--display); font-weight: 800; font-size: 28px; color: var(--accent); line-height: 0.9; }
+.sys p { font-size: 14px; color: var(--muted); }
+.sys .next { font-size: 13px; }
+.sys .next b { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 400; margin-right: 6px; }
+
+/* roadmap */
+.road { display: grid; gap: 0; border-left: 2px solid var(--line); margin-left: 9px; }
+.stage { position: relative; padding: 0 0 22px 26px; display: grid; gap: 4px; }
+.stage::before { content: ""; position: absolute; left: -9px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); border: 2px solid var(--c, var(--none)); }
+.stage.built { --c: var(--ok); } .stage.part { --c: var(--part); } .stage.none { --c: var(--none); }
+.stage.part::before { background: var(--part); }
+.stage.built::before { background: var(--ok); }
+.stage .row { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stage p { color: var(--muted); font-size: 14px; }
+.progress { height: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; max-width: 320px; }
+.progress i { display: block; height: 100%; background: var(--c); }
+
+/* decisions */
+.dec-list { display: grid; gap: 6px; }
+.dec { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.dec summary { list-style: none; cursor: pointer; padding: 12px 14px; display: grid; grid-template-columns: 110px minmax(0, 1fr) max-content; gap: 12px; align-items: center; }
+.dec summary::-webkit-details-marker { display: none; }
+.dec summary .area { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.dec .body { padding: 0 14px 14px 136px; display: grid; gap: 6px; font-size: 14px; }
+.dec .body b { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+@media (max-width: 620px) {
+  .dec summary { grid-template-columns: minmax(0, 1fr) max-content; }
+  .dec summary .area { grid-column: 1 / -1; }
+  .dec .body { padding-left: 14px; }
+}
+.statement { font-family: var(--display); font-weight: 600; font-size: clamp(24px, 3.6vw, 34px); line-height: 1.15; max-width: 30ch; text-wrap: balance; }
+footer { padding-block: 34px 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<nav class="rail" aria-label="Sections">
+  <div class="wrap">
+    <a class="mark" href="#top">For The War</a>
+    <a href="#pillars">Pillars</a>
+    <a href="#loop">Loop</a>
+    <a href="#world">World</a>
+    <a href="#economy">Economy</a>
+    <a href="#movement">Movement</a>
+    <a href="#presentation">Presentation</a>
+    <a href="#systems">Systems</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#decisions">Decisions</a>
+  </div>
+</nav>
+
+<main id="top">
+  <div class="wrap">
+    <header class="hero">
+      <div>
+        <div class="label">Design direction · Godot 4 · Multiplayer grand strategy RTS</div>
+        <h1 style="margin-top:14px">For<br>The <span>War</span></h1>
+        <p class="thesis">Command a nation through a war that reshapes both the strategic map and the world you see. A readable simulation underneath, an immense, dark, war-torn world on top.</p>
+        <div class="meta">
+          <div><span class="label">Players</span><b>12 per world, built to grow to 30–60</b></div>
+          <div><span class="label">Tick rate</span><b>10 / s, server-shaped</b></div>
+          <div><span class="label">Prototype world</span><b>8.9 × 4.4 km · ~16k tiles</b></div>
+        </div>
+      </div>
+      <svg id="heroMap" viewBox="0 0 420 320" role="img" aria-label="Stylised tile map: a city centre with zoned tiles around it and a road network"></svg>
+    </header>
+  </div>
+
+  <section class="brief" id="pillars">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§2 Core pillars</div>
+        <div>
+          <h2>Five pillars</h2>
+          <p>Every feature should strengthen at least one of these. The bottom line of each card shows where the prototype stands today.</p>
+        </div>
+      </div>
+      <div class="pillars" id="pillarGrid"></div>
+    </div>
+  </section>
+
+  <section class="brief" id="loop">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§11 Core loop</div>
+        <div>
+          <h2>The war machine loop</h2>
+          <p>One continuous cycle through a persistent campaign. Select a step to see what the player does there and how far it is built.</p>
+        </div>
+      </div>
+      <div class="loop">
+        <svg id="loopSvg" viewBox="0 0 360 360" role="group" aria-label="Core loop steps"></svg>
+        <div class="loop-detail" id="loopDetail" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="brief" id="world">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§3 World structure</div>
+        <div>
+          <h2>Three layers, one tile</h2>
+          <p>Movement follows explicit connections, never the decorative roads. Each layer reads game state; only the strategic and development layers are authoritative.</p>
+        </div>
+      </div>
+      <div class="layers">
+        <div class="layer"><div><h3>Strategic</h3><div class="label">authoritative</div></div><p>Tile ownership, city centres, connections, national borders, unit positions and objectives. Ground units move only along road, bridge, sea, river and dock links; capture happens at a tile centre.</p></div>
+        <div class="layer"><div><h3>Development</h3><div class="label">authoritative</div></div><p>Zones and tiers per tile, production sites, infrastructure and tile health. City centres are never zoned. Each city owns a fixed domain split into regions of about 10 tiles.</p></div>
+        <div class="layer"><div><h3>Environment</h3><div class="label">view only</div></div><p>Terrain relief, megacities, weather, sun shafts, ground mist, smoke and damage. It must communicate state and never block movement, combat or sync.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="brief" id="economy">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§4–5 Development</div>
+        <div>
+          <h2>Zone a tile, grow a war economy</h2>
+          <p>Three economic zones, each with three tiers, plus production tiles for the military. Choose a zone and tier to see what the tile produces and what it looks like in the current build.</p>
+        </div>
+      </div>
+      <div class="econ">
+        <div class="econ-card">
+          <div class="seg" id="zoneSeg" role="group" aria-label="Zone"></div>
+          <div class="seg" id="tierSeg" role="group" aria-label="Tier"></div>
+          <div class="out" id="econOut"></div>
+          <dl class="kv" id="econKv"></dl>
+          <p class="note" id="econNote"></p>
+        </div>
+        <svg id="tileSvg" viewBox="0 0 420 300" role="img" aria-label="Sketch of a developed tile"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="brief" id="movement">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§6 Movement</div>
+        <div>
+          <h2>Roads for armies, range for aircraft</h2>
+          <p>Two kinds of movement create fronts and chokepoints on the ground while aircraft stay flexible. Switch between them to compare.</p>
+        </div>
+      </div>
+      <div class="move">
+        <svg id="moveSvg" viewBox="0 0 440 280" role="img" aria-label="Movement comparison on a tile graph"></svg>
+        <div class="econ-card">
+          <div class="seg" id="moveSeg" role="group" aria-label="Movement type">
+            <button type="button" id="mvGround" aria-pressed="true">Ground forces</button>
+            <button type="button" id="mvAir" aria-pressed="false">Air forces</button>
+          </div>
+          <h3 id="moveTitle"></h3>
+          <p id="moveText"></p>
+          <div class="chips" id="moveChips"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="brief" id="presentation">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§9 Art direction</div>
+        <div>
+          <h2>Gloom you can read</h2>
+          <p>A cinematic, overcast world at Dreadnought Tartarus scale, with clear information layered on top. Information first, atmosphere second.</p>
+        </div>
+      </div>
+
+      <div class="zoom">
+        <h3>What the camera shows</h3>
+        <div class="zoom-ctrl">
+          <label class="label" for="zoomRange">Camera distance</label>
+          <input type="range" id="zoomRange" min="25" max="2200" step="5" value="260">
+          <span class="reading" id="zoomReading">260 m</span>
+        </div>
+        <div class="bands" id="bands"></div>
+        <p class="note">Thresholds are the live values from the 3D view. The default play distance is 260 m, and the camera ranges from 25 to 2,200 m.</p>
+      </div>
+
+      <div class="art" style="margin-top:34px">
+        <div>
+          <h3 style="margin-bottom:12px">Palette in use</h3>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:12px">Visual principles</h3>
+          <div class="principles">
+            <div class="principle"><b>Dark and gloomy</b><span>Muted colour, charcoal haze, a low amber sun and overcast skies. Saturation sits at 0.78.</span></div>
+            <div class="principle"><b>Readable at strategic scale</b><span>Units, ownership, routes and city centres stay legible at every zoom. Flags shrink only to 80% far out.</span></div>
+            <div class="principle"><b>Scale through small things</b><span>Slim roads and small props make cities and land read as vast. Towers rise to 210 m over 30 m tiles.</span></div>
+            <div class="principle"><b>Atmosphere without clutter</b><span>Clouds, shafts and mist fade by camera distance so they never hide the map.</span></div>
+            <div class="principle"><b>Persistent decay</b><span>Ruins, scorch and craters now. Next: damage driven by tile health.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="brief" id="systems">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§10 Systems</div>
+        <div>
+          <h2>Where each system stands</h2>
+          <p>The simulation never depends on the view. Filter by status to see what is ready to build on.</p>
+        </div>
+      </div>
+      <div class="seg sys-filter" id="sysFilter" role="group" aria-label="Filter systems by status"></div>
+      <div class="systems" id="sysGrid"></div>
+    </div>
+  </section>
+
+  <section class="brief" id="roadmap">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§12 Staging</div>
+        <div>
+          <h2>Prove the foundation first</h2>
+          <p>The target milestone is a small but complete simulation with two players competing for territory. The visual world has moved ahead of schedule. The economy is the current front.</p>
+        </div>
+      </div>
+      <div class="road" id="road"></div>
+    </div>
+  </section>
+
+  <section class="brief" id="decisions">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">§13 Open decisions</div>
+        <div>
+          <h2>Choices still on the table</h2>
+          <p>Deliberate open questions, to be settled as the prototype shows what works. Filter by area and open a row for the current direction.</p>
+        </div>
+      </div>
+      <div class="seg sys-filter" id="decFilter" role="group" aria-label="Filter decisions by area"></div>
+      <div class="dec-list" id="decList"></div>
+    </div>
+  </section>
+
+  <section class="brief">
+    <div class="wrap">
+      <div class="brief-head">
+        <div class="label">Vision statement</div>
+        <p class="statement">Build a nation, run its war economy and fight for territory across an immense modern battlefield that visibly bears every scar.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">Compiled from the vision document (g2.txt), the project areas and the design log, as of the tile development and zone building pass.</div>
+  </footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function h(tag, cls, html, parent) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  var STATUS = { built: "Built", part: "In progress", none: "Not started", open: "Open" };
+  function chip(s, text) { return '<span class="chip ' + s + '">' + (text || STATUS[s]) + "</span>"; }
+
+  /* ---------------- hero map: hex tiles around a city ---------------- */
+  var hero = document.getElementById("heroMap");
+  function hexPts(cx, cy, r) {
+    var p = [];
+    for (var i = 0; i < 6; i++) { var a = Math.PI / 180 * (60 * i - 30); p.push((cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1)); }
+    return p.join(" ");
+  }
+  function drawHero() {
+    hero.innerHTML = "";
+    var r = 30, w = Math.sqrt(3) * r;
+    var zoneOf = { "3,2": "city", "2,2": "res", "4,2": "com", "3,1": "ind", "2,1": "res", "4,3": "prod", "3,3": "ind", "2,3": "com", "4,1": "res" };
+    var cols = { res: css("--res"), com: css("--com"), ind: css("--ind"), prod: css("--prod") };
+    var centres = {};
+    for (var row = 0; row < 5; row++) {
+      for (var col = 0; col < 7; col++) {
+        var cx = 36 + col * w + (row % 2 ? w / 2 : 0), cy = 36 + row * r * 1.5;
+        var key = col + "," + row; centres[key] = [cx, cy];
+        var z = zoneOf[key];
+        var poly = el("polygon", { points: hexPts(cx, cy, r - 1.5), fill: css("--surface"), stroke: css("--line"), "stroke-width": 1.5 }, hero);
+        if (z && z !== "city") {
+          poly.setAttribute("fill", cols[z] + "33");
+          poly.setAttribute("stroke", cols[z]);
+          var n = z === "prod" ? 3 : 4;
+          for (var b = 0; b < n; b++) {
+            var bh = 6 + ((col * 7 + row * 3 + b * 5) % 12);
+            el("rect", { x: (cx - 14 + b * 8).toFixed(1), y: (cy + 8 - bh).toFixed(1), width: 6, height: bh, fill: cols[z] }, hero);
+          }
+        }
+      }
+    }
+    var links = [["3,2", "2,2"], ["3,2", "4,2"], ["3,2", "3,1"], ["3,2", "3,3"], ["3,2", "2,1"], ["3,2", "2,3"], ["2,2", "1,2"], ["4,2", "5,2"], ["3,1", "3,0"], ["3,3", "3,4"], ["1,2", "0,2"], ["5,2", "6,2"], ["4,3", "5,3"], ["2,1", "1,1"]];
+    links.forEach(function (l) { var a = centres[l[0]], b = centres[l[1]]; el("line", { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: css("--muted"), "stroke-width": 1.2, "stroke-dasharray": "3 3" }, hero); });
+    var c = centres["3,2"];
+    el("polygon", { points: hexPts(c[0], c[1], r - 1.5), fill: css("--accent-soft"), stroke: css("--accent"), "stroke-width": 2.5 }, hero);
+    [[-12, 26], [-4, 40], [4, 32], [12, 22]].forEach(function (t) { el("rect", { x: c[0] + t[0] - 3, y: c[1] + 10 - t[1], width: 6, height: t[1], fill: css("--ink") }, hero); });
+    var lbl = el("text", { x: c[0], y: c[1] + 24, "text-anchor": "middle", fill: css("--ink"), "font-family": "JetBrains Mono, monospace", "font-size": 9 }, hero);
+    lbl.textContent = "CITY CENTRE";
+  }
+
+  /* ---------------- pillars ---------------- */
+  var PILLARS = [
+    ["Territorial grand strategy", "Control cities, expand across connected tiles and plan campaigns around geography.", "Built: 12 nations, organic countries, fixed city domains, capture at tile centres."],
+    ["A growing war economy", "Residential, commercial and industrial zones produce manpower, cash and supplies.", "In progress: zoning, tiers and district buildings work. Income and costs are next."],
+    ["Command-driven warfare", "Orders, positioning and targets shape combat that resolves automatically.", "Basic: auto-resolving 1 s rounds, retreat costs a hit, reinforcements join."],
+    ["A world shaped by war", "Cities and districts show visible damage and decay as the record of the conflict.", "Partial: ruins, scorch, craters, smoke. Damage from tile health is open."],
+    ["Scale without clutter", "Optimised assets and layered effects so a vast world never overwhelms player or engine.", "Holding: ~1.24M props at 120 fps. 16 s startup still needs streaming."]
+  ];
+  var pg = document.getElementById("pillarGrid");
+  PILLARS.forEach(function (p, i) {
+    var d = h("div", "pillar", null, pg);
+    h("div", "num", "0" + (i + 1), d);
+    h("h3", null, p[0], d);
+    h("p", null, p[1], d);
+    h("div", "now", p[2], d);
+  });
+
+  /* ---------------- loop ---------------- */
+  var LOOP = [
+    { t: "Develop", full: "Develop territory", text: "Assign zones to tiles inside your city regions and upgrade them through tiers I–III. City centres stay unzoned.", sys: ["Development", "UI"], s: "part", now: "Zone panel, tiers and full-tile district buildings are in. Costs and build times are not set." },
+    { t: "Generate", full: "Generate resources", text: "Developed tiles produce manpower, cash and supplies every tick for their owner.", sys: ["Economy"], s: "none", now: "Next up: output numbers per zone and tier, shown in the top bar." },
+    { t: "Build", full: "Build military forces", text: "Production tiles turn resources into units: select a tile, choose a unit, pay, wait, deploy.", sys: ["Production", "Units"], s: "part", now: "Production zone and its compound visuals exist. Queue and roster are not built." },
+    { t: "Plan", full: "Plan operations", text: "Move ground forces along connections and send aircraft anywhere within range.", sys: ["Movement", "UI"], s: "part", now: "Ground orders, box select and route preview work. Air movement is not started." },
+    { t: "Fight", full: "Fight and capture", text: "Engagements resolve automatically; capture happens at tile centres; developed tiles take damage.", sys: ["Combat"], s: "part", now: "Battles and capture work. Unit roles, tactical abilities and tile damage are open." },
+    { t: "Adapt", full: "Adapt and expand", text: "Rebuild damaged districts, develop captured land and prepare for the next phase of the war.", sys: ["Development", "Persistence"], s: "none", now: "Zones survive capture. Repair, rebuilding and saving are not built." }
+  ];
+  var loopSvg = document.getElementById("loopSvg");
+  var loopDetail = document.getElementById("loopDetail");
+  var loopOn = 0;
+  function drawLoop() {
+    loopSvg.innerHTML = "";
+    el("circle", { cx: 180, cy: 180, r: 125, class: "ring" }, loopSvg);
+    var hub = el("text", { x: 180, y: 176, class: "hub" }, loopSvg); hub.textContent = "Persistent";
+    var hub2 = el("text", { x: 180, y: 200, class: "hub" }, loopSvg); hub2.textContent = "campaign";
+    LOOP.forEach(function (s, i) {
+      var a = -Math.PI / 2 + i * Math.PI / 3, x = 180 + 125 * Math.cos(a), y = 180 + 125 * Math.sin(a);
+      var g = el("g", { class: "node" + (i === loopOn ? " on" : ""), tabindex: 0, role: "button", "aria-label": s.full, "aria-pressed": i === loopOn }, loopSvg);
+      el("circle", { cx: x, cy: y, r: 38 }, g);
+      var n = el("text", { x: x, y: y - 3 }, g); n.textContent = "0" + (i + 1);
+      var t = el("text", { x: x, y: y + 12 }, g); t.textContent = s.t.toUpperCase();
+      g.addEventListener("click", function () { loopOn = i; drawLoop(); });
+      g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loopOn = i; drawLoop(); } });
+    });
+    var s = LOOP[loopOn];
+    loopDetail.innerHTML = '<div class="step">Step 0' + (loopOn + 1) + " of 06</div><h3>" + s.full + "</h3><p>" + s.text + "</p>" +
+      '<div class="chips">' + chip(s.s) + s.sys.map(function (x) { return '<span class="chip none">' + x + "</span>"; }).join("") + "</div>" +
+      '<p class="note"><b>Now:</b> ' + s.now + "</p>";
+  }
+
+  /* ---------------- economy explorer ---------------- */
+  var ZONES = {
+    res: { name: "Residential", out: "Manpower", tiers: [
+      ["Cottages", "Cottages and pairs with garden trees on a 3 m lot grid."],
+      ["Apartment blocks", "Apartment blocks 4–8.5 m tall, some L-shaped."],
+      ["Residential towers", "Podiums with towers 16–34 m tall, setbacks and lit windows."]] },
+    com: { name: "Commercial", out: "Cash", tiers: [
+      ["Big-box retail", "Big-box stores with asphalt car parks."],
+      ["Office blocks", "Office blocks 9–16 m tall."],
+      ["Glass towers", "Podiums with glass towers 34–56 m tall and lit crowns."]] },
+    ind: { name: "Industrial", out: "Supplies", tiers: [
+      ["Sheds and silos", "Sheds and rows of silos."],
+      ["Factory halls", "Factory halls with 14–20 m chimneys and tank groups."],
+      ["Heavy plant", "Heavy halls, paired stacks 22–30 m and cooling towers."]] },
+    prod: { name: "Production", out: "Military units", tiers: [
+      ["Military compound", "Hangars with red roof beacons and vehicle yards with parked armour."]] }
+  };
+  var econ = { zone: "ind", tier: 3 };
+  var zoneSeg = document.getElementById("zoneSeg"), tierSeg = document.getElementById("tierSeg");
+  Object.keys(ZONES).forEach(function (k) {
+    var b = h("button", null, '<span class="sw"></span>' + ZONES[k].name, zoneSeg);
+    b.type = "button"; b.style.setProperty("--z", "var(--" + k + ")"); b.dataset.zone = k;
+    b.addEventListener("click", function () { econ.zone = k; econ.tier = Math.min(econ.tier, ZONES[k].tiers.length); drawEcon(); });
+  });
+  ["I", "II", "III"].forEach(function (r, i) {
+    var b = h("button", null, "Tier " + r, tierSeg);
+    b.type = "button"; b.dataset.tier = i + 1;
+    b.addEventListener("click", function () { econ.tier = i + 1; drawEcon(); });
+  });
+  var tileSvg = document.getElementById("tileSvg");
+  function iso(x, y, z) { return [210 + (x - y) * 0.87, 150 + (x + y) * 0.5 - z]; }
+  function box(x, y, w, d, ht, col, parent) {
+    var p = function (a) { return a[0].toFixed(1) + "," + a[1].toFixed(1); };
+    var a = iso(x, y, 0), b = iso(x + w, y, 0), c = iso(x + w, y + d, 0), dd = iso(x, y + d, 0);
+    var a2 = iso(x, y, ht), b2 = iso(x + w, y, ht), c2 = iso(x + w, y + d, ht), d2 = iso(x, y + d, ht);
+    el("polygon", { points: [p(b), p(c), p(c2), p(b2)].join(" "), fill: col, "fill-opacity": 0.55, stroke: css("--ink"), "stroke-opacity": 0.35, "stroke-width": 0.6 }, parent);
+    el("polygon", { points: [p(c), p(dd), p(d2), p(c2)].join(" "), fill: col, "fill-opacity": 0.8, stroke: css("--ink"), "stroke-opacity": 0.35, "stroke-width": 0.6 }, parent);
+    el("polygon", { points: [p(a2), p(b2), p(c2), p(d2)].join(" "), fill: col, stroke: css("--ink"), "stroke-opacity": 0.35, "stroke-width": 0.6 }, parent);
+  }
+  function rand(seed) { var s = seed; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+  function drawTile() {
+    tileSvg.innerHTML = "";
+    var col = css("--" + econ.zone);
+    var ground = [iso(-120, -120, 0), iso(120, -120, 0), iso(120, 120, 0), iso(-120, 120, 0)].map(function (q) { return q[0].toFixed(1) + "," + q[1].toFixed(1); }).join(" ");
+    el("polygon", { points: ground, fill: col, "fill-opacity": 0.12, stroke: col, "stroke-width": 2 }, tileSvg);
+    var road1 = [iso(-120, 0, 0), iso(120, 0, 0)], road2 = [iso(0, -120, 0), iso(0, 120, 0)];
+    [road1, road2].forEach(function (r) { el("line", { x1: r[0][0], y1: r[0][1], x2: r[1][0], y2: r[1][1], stroke: css("--muted"), "stroke-width": 5, "stroke-opacity": 0.5 }, tileSvg); });
+    var R = rand(7 + econ.tier * 13 + econ.zone.length * 31);
+    var step = { res: [26, 34, 44], com: [36, 40, 52], ind: [36, 42, 50], prod: [44] }[econ.zone][econ.tier - 1];
+    var lots = [];
+    for (var gx = -110 + step / 2; gx < 110; gx += step) for (var gy = -110 + step / 2; gy < 110; gy += step) {
+      if (Math.abs(gx) < step * 0.55 || Math.abs(gy) < step * 0.55) continue;
+      lots.push([gx, gy]);
+    }
+    lots.sort(function (a, b) { return (a[0] + a[1]) - (b[0] + b[1]); });
+    lots.forEach(function (l) {
+      var half = step * 0.5 - 3, x = l[0] - half, y = l[1] - half, s = half * 2, r = R();
+      var z = econ.zone, t = econ.tier;
+      if (z === "res") {
+        if (t === 1) box(x + 2, y + 2, s * 0.8, s * 0.6, 6 + r * 4, col, tileSvg);
+        else if (t === 2) box(x + 1, y + 1, s * 0.9, s * 0.85, 16 + r * 14, col, tileSvg);
+        else { box(x, y, s, s, 8, col, tileSvg); box(x + s * 0.2, y + s * 0.2, s * 0.6, s * 0.6, 40 + r * 40, col, tileSvg); }
+      } else if (z === "com") {
+        if (t === 1) { box(x, y, s, s * 0.55, 7 + r * 3, col, tileSvg); box(x, y + s * 0.62, s, s * 0.38, 0.8, css("--muted"), tileSvg); }
+        else if (t === 2) box(x + 2, y + 2, s * 0.85, s * 0.8, 24 + r * 18, col, tileSvg);
+        else { box(x, y, s, s, 10, col, tileSvg); box(x + s * 0.19, y + s * 0.19, s * 0.62, s * 0.62, 70 + r * 50, col, tileSvg); }
+      } else if (z === "ind") {
+        if (t === 1) box(x, y, s * 0.9, s * 0.65, 8 + r * 3, col, tileSvg);
+        else if (t === 2) { box(x, y, s, s * 0.75, 12 + r * 4, col, tileSvg); if (r > 0.5) box(x + s * 0.8, y + s * 0.8, 4, 4, 46, css("--ink"), tileSvg); }
+        else if (r < 0.25) { box(x + s * 0.1, y + s * 0.1, s * 0.8, s * 0.8, 52, col, tileSvg); }
+        else { box(x, y, s, s * 0.8, 18 + r * 6, col, tileSvg); if (r > 0.45) { box(x + s * 0.2, y + s * 0.85, 5, 5, 72, css("--ink"), tileSvg); box(x + s * 0.7, y + s * 0.85, 5, 5, 64, css("--ink"), tileSvg); } }
+      } else {
+        if (r < 0.45) box(x, y, s, s * 0.7, 14 + r * 6, col, tileSvg);
+        else { box(x, y, s, s, 0.8, css("--muted"), tileSvg); for (var v = 0; v < 6; v++) box(x + 4 + (v % 3) * s * 0.3, y + 6 + Math.floor(v / 3) * s * 0.45, s * 0.18, s * 0.12, 3, css("--ink"), tileSvg); }
+      }
+    });
+    var cap = el("text", { x: 14, y: 286, fill: css("--muted"), "font-family": "JetBrains Mono, monospace", "font-size": 10 }, tileSvg);
+    cap.textContent = "SKETCH · ONE TILE ≈ 30 M · OPEN SQUARE KEPT AT THE CENTRE";
+  }
+  function drawEcon() {
+    var Z = ZONES[econ.zone], T = Z.tiers[econ.tier - 1];
+    Array.prototype.forEach.call(zoneSeg.children, function (b) { b.setAttribute("aria-pressed", b.dataset.zone === econ.zone); });
+    Array.prototype.forEach.call(tierSeg.children, function (b) {
+      var t = +b.dataset.tier; b.disabled = t > Z.tiers.length; b.setAttribute("aria-pressed", t === econ.tier);
+      b.style.setProperty("--z", "var(--" + econ.zone + ")");
+    });
+    var card = document.querySelector(".econ-card"); card.style.setProperty("--z", "var(--" + econ.zone + ")");
+    document.getElementById("econOut").textContent = Z.out;
+    document.getElementById("econKv").innerHTML =
+      "<dt>Tier</dt><dd>" + ["I · basic", "II · expanded", "III · advanced"][econ.tier - 1] + (Z.tiers.length === 1 ? " (single tier for now)" : "") + "</dd>" +
+      "<dt>On the map</dt><dd>" + T[0] + ". " + T[1] + "</dd>" +
+      "<dt>Output</dt><dd>Not yet numbered</dd>" +
+      "<dt>Cost · time</dt><dd>Not yet set (free and instant in the prototype)</dd>";
+    document.getElementById("econNote").textContent = econ.zone === "prod"
+      ? "Production tiles compete with economic zones for limited land: every compound is a district that produces nothing else."
+      : "Re-zoning restarts at tier I. Zones survive capture, so the conqueror inherits the district.";
+    drawTile();
+  }
+
+  /* ---------------- movement ---------------- */
+  var moveSvg = document.getElementById("moveSvg");
+  var NODES = [[50, 60], [140, 40], [230, 70], [320, 50], [400, 90], [70, 160], [160, 140], [250, 170], [340, 150], [410, 200], [40, 240], [130, 230], [220, 250], [310, 240], [390, 260]];
+  var EDGES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8], [4, 9], [5, 6], [6, 7], [7, 8], [8, 9], [5, 10], [6, 11], [7, 12], [8, 13], [9, 14], [10, 11], [11, 12], [12, 13], [13, 14], [1, 5], [7, 3]];
+  var mode = "ground";
+  var MOVE = {
+    ground: { title: "Connection-based", text: "Ground units travel only along explicit links between tiles: road, bridge, sea lane, river and dock. Decorative highways are scenery, not routes. This is what creates fronts, chokepoints and flanks.", chips: [["built", "Shortest-time routes"], ["built", "Orders to any road point"], ["built", "Turn around mid-road"], ["open", "Stacking limits"], ["open", "Blockades"]] },
+    air: { title: "Range-based", text: "Aircraft fly straight to any valid target inside their operational range, across enemy territory and the east–west wrap seam. That makes them fast and flexible, bounded by range, basing and targeting.", chips: [["none", "Air units"], ["open", "Operational range"], ["open", "Landing and basing"], ["open", "Air restrictions"]] }
+  };
+  function drawMove() {
+    moveSvg.innerHTML = "";
+    EDGES.forEach(function (e) { var a = NODES[e[0]], b = NODES[e[1]]; el("line", { x1: a[0], y1: a[1], x2: b[0], y2: b[1], class: "edge" }, moveSvg); });
+    if (mode === "air") el("circle", { cx: NODES[10][0], cy: NODES[10][1], r: 300, class: "range" }, moveSvg);
+    NODES.forEach(function (n, i) { el("circle", { cx: n[0], cy: n[1], r: i === 10 || i === 4 ? 10 : 7, class: i === 10 || i === 4 ? "city" : "tile" }, moveSvg); });
+    var route = mode === "ground" ? [10, 11, 12, 7, 3, 4] : [10, 4];
+    el("polyline", { points: route.map(function (i) { return NODES[i].join(","); }).join(" "), class: "path", "stroke-dasharray": mode === "air" ? "10 7" : "none" }, moveSvg);
+    var t1 = el("text", { x: NODES[10][0] + 14, y: NODES[10][1] + 4, fill: css("--ink"), "font-family": "JetBrains Mono, monospace", "font-size": 11 }, moveSvg); t1.textContent = "ORIGIN";
+    var t2 = el("text", { x: NODES[4][0] - 12, y: NODES[4][1] - 16, fill: css("--ink"), "font-family": "JetBrains Mono, monospace", "font-size": 11, "text-anchor": "end" }, moveSvg); t2.textContent = "TARGET";
+    var m = MOVE[mode];
+    document.getElementById("moveTitle").textContent = m.title;
+    document.getElementById("moveText").textContent = m.text;
+    document.getElementById("moveChips").innerHTML = m.chips.map(function (c) { return chip(c[0], c[1]); }).join("");
+    document.getElementById("mvGround").setAttribute("aria-pressed", mode === "ground");
+    document.getElementById("mvAir").setAttribute("aria-pressed", mode === "air");
+  }
+  document.getElementById("mvGround").addEventListener("click", function () { mode = "ground"; drawMove(); });
+  document.getElementById("mvAir").addEventListener("click", function () { mode = "air"; drawMove(); });
+
+  /* ---------------- zoom gauge ---------------- */
+  var MIN = 25, MAX = 2200;
+  // [label, visible from, full until, gone at] in camera distance (m)
+  var BANDS = [
+    ["Window lights · facade detail", 25, 350, 1100],
+    ["Trees, rocks, fields, farmsteads", 25, 830, 830],
+    ["Neutral garrisons outside cities", 25, 450, 450],
+    ["Ground mist banks", 25, 500, 650],
+    ["White route lines", 25, 500, 1000],
+    ["Sun shafts", 25, 700, 1300],
+    ["Cloud deck (from above)", 595, 1000, 2200],
+    ["Far cloud-shadow pass", 25, 2200, 2200],
+    ["City blocks and towers", 25, 2200, 2200],
+    ["Unit flags and city names", 25, 2200, 2200]
+  ];
+  var bandsEl = document.getElementById("bands");
+  var range = document.getElementById("zoomRange");
+  function pct(v) { return ((v - MIN) / (MAX - MIN) * 100).toFixed(2) + "%"; }
+  BANDS.forEach(function (b) {
+    var row = h("div", "band", null, bandsEl);
+    h("span", null, b[0], row);
+    var bar = h("div", "bar", null, row);
+    var fill = h("i", "fill", null, bar);
+    fill.style.left = pct(b[1]); fill.style.width = "calc(" + pct(b[3]) + " - " + pct(b[1]) + ")";
+    h("i", "cursor", null, bar);
+    h("span", "state", "", row);
+    row._b = b;
+  });
+  function drawZoom() {
+    var d = +range.value;
+    document.getElementById("zoomReading").textContent = d.toLocaleString("en-US") + " m";
+    Array.prototype.forEach.call(bandsEl.children, function (row) {
+      var b = row._b, st = "hidden";
+      if (d >= b[1] && d <= b[2]) st = "visible";
+      else if (d > b[2] && d < b[3]) st = "fading";
+      row.classList.toggle("vis", st === "visible");
+      row.classList.toggle("fading", st === "fading");
+      row.querySelector(".state").textContent = st;
+      row.querySelector(".cursor").style.left = pct(d);
+    });
+  }
+  range.addEventListener("input", drawZoom);
+
+  /* ---------------- swatches ---------------- */
+  var SW = [
+    ["#17191b", "Haze ground", "Background and fog base"],
+    ["#ffcc94", "Low sun", "Sun light (1.0, 0.8, 0.58)"],
+    ["#e0443a", "Order arrows", "Your units' move orders"],
+    ["#c42a20", "Front line", "Borders between two player nations"],
+    ["#14232e", "Deep sea", "Water body, deep"],
+    ["#36474b", "Coastal shallows", "Water body, shallow"],
+    ["#73ce73", "Residential", "Zone marker"],
+    ["#66a8fa", "Commercial", "Zone marker"],
+    ["#fab84c", "Industrial", "Zone marker"],
+    ["#eb5c4c", "Production", "Zone marker"]
+  ];
+  var swEl = document.getElementById("swatches");
+  SW.forEach(function (s) {
+    var d = h("div", "swatch", null, swEl);
+    var i = h("i", null, null, d); i.style.background = s[0];
+    h("div", null, "<b>" + s[1] + '</b><span class="mono">' + s[0] + "</span>", d);
+    d.title = s[2];
+  });
+
+  /* ---------------- systems ---------------- */
+  var SYS = [
+    ["A", "World & map", "built", "Generator v4: organic countries, city domains split into regions, rivers, one ocean, polar caps, east–west wrap. Prototype and planet presets.", "Settle seven city centres per country against the current 12."],
+    ["B", "Movement", "part", "Ground routes, orders to any road point, holding and turning mid-road. Box select and route preview.", "Air units with operational range."],
+    ["C", "Combat & capture", "part", "Auto-resolving 1 s rounds with ±20% spread, city defence ×2, retreat costs a hit, reinforcements join on contact.", "Unit roles and counters; damage to developed tiles."],
+    ["D", "Development", "part", "Zones and tiers I–III with orders validated in the sim; zone panel; full-tile district buildings for every zone and tier.", "Resource income per tick, build costs and times."],
+    ["E", "Production & units", "none", "Production zone exists with compound visuals. Two placeholder unit types.", "Build queue and a first roster: infantry, armour, artillery, recon, one aircraft."],
+    ["F", "Rendering & art", "built", "Blended low-poly terrain, Tartarus-scale cities, slim roads with junctions, water, clouds, shafts, mist, district buildings.", "Damage states from tile health; industrial smoke."],
+    ["G", "UI & controls", "part", "HUD, scoreboard, stack and tile panels, box select, city region highlight, Paths and Names toggles.", "Economy and production panels; minimap."],
+    ["H", "Multiplayer & saving", "none", "The sim is tick-based and order-validated, ready for a server.", "Headless server with two clients; saving zones and the world."],
+    ["I", "Performance", "part", "About 120 fps with ~1.24M props; ownership and zone changes rebuild only what they touch.", "Stream chunks in and out to cut the 16 s startup."],
+    ["J", "Game design & meta", "open", "12 players now, built to grow to 30–60.", "Victory conditions and match structure."]
+  ];
+  var sysFilter = "all";
+  var sf = document.getElementById("sysFilter");
+  [["all", "All"], ["built", "Built"], ["part", "In progress"], ["none", "Not started"], ["open", "Open"]].forEach(function (f) {
+    var b = h("button", null, f[1], sf); b.type = "button"; b.dataset.f = f[0];
+    if (f[0] !== "all") b.style.setProperty("--z", "var(--" + { built: "ok", part: "part", none: "none", open: "open" }[f[0]] + ")");
+    b.addEventListener("click", function () { sysFilter = f[0]; drawSys(); });
+  });
+  function drawSys() {
+    Array.prototype.forEach.call(sf.children, function (b) { b.setAttribute("aria-pressed", b.dataset.f === sysFilter); });
+    var g = document.getElementById("sysGrid"); g.innerHTML = "";
+    SYS.filter(function (s) { return sysFilter === "all" || s[2] === sysFilter; }).forEach(function (s) {
+      var d = h("div", "sys", null, g);
+      h("div", "top", '<span class="letter">' + s[0] + "</span>" + chip(s[2]), d);
+      h("h3", null, s[1], d);
+      h("p", null, s[3], d);
+      h("div", "next", "<b>Next</b>" + s[4], d);
+    });
+  }
+
+  /* ---------------- roadmap ---------------- */
+  var ROAD = [
+    ["1", "Foundation prototype", "built", 90, "Tile graph, city centres, ownership, ground movement. The strategic map works without final art."],
+    ["2", "Economic and military simulation", "part", 40, "Zones and tiers done; resources, costs, production tiles and units next."],
+    ["3", "Multiplayer foundation", "none", 5, "Server-authoritative movement, ownership, resources and combat between connected players."],
+    ["4", "Visual world", "part", 70, "Ahead of schedule: terrain, cities, weather, water, district buildings. Damage states remain."],
+    ["5", "Persistent campaign", "none", 0, "Saving and recovery, long-running world state, reconnection."],
+    ["6", "Strategic depth and polish", "none", 0, "Roster, tactical abilities, air operations, balance, diplomacy."]
+  ];
+  var road = document.getElementById("road");
+  ROAD.forEach(function (r) {
+    var d = h("div", "stage " + r[2], null, road);
+    h("div", "row", '<span class="label">Stage ' + r[0] + "</span><h3>" + r[1] + "</h3>" + chip(r[2]), d);
+    h("p", null, r[4], d);
+    var p = h("div", "progress", "<i></i>", d); p.firstChild.style.width = r[3] + "%";
+    p.setAttribute("role", "img"); p.setAttribute("aria-label", "About " + r[3] + "% complete");
+  });
+
+  /* ---------------- decisions ---------------- */
+  var DEC = [
+    ["World", "City centres per country", "Vision: seven fixed city centres. Prototype: 12 per player nation.", "Which count the multiplayer world uses, and how city domains change hands."],
+    ["World", "World size and player count", "Vast tile world; 12 players now, built for 30–60.", "Exact map dimensions per player count, and the hardware floor."],
+    ["Economy", "Output, costs and upkeep", "Manpower, cash and supplies from zoned tiles.", "Per-tier output, build and upgrade costs, build times, upkeep."],
+    ["Economy", "Tile health and damage", "Developed tiles have a health pool that shows in their look.", "Damage effects, repair costs, production penalties, destruction thresholds."],
+    ["Economy", "Cut-off territory", "Zones survive capture.", "Whether tiles cut off from their city can still produce or develop."],
+    ["Military", "Unit roster and counters", "Modern units across ground, recon, defence and air.", "Roster size, counter relationships, costs and upkeep."],
+    ["Combat", "Resolution and abilities", "Automatic combat shaped by orders.", "Detailed resolution, tactical abilities, what changes when a city centre falls."],
+    ["Movement", "Stacking, blockades, retreats", "Ground on connections, air by range.", "Stacking limits, blockades, terrain movement costs, air restrictions."],
+    ["Multiplayer", "Match structure", "Persistent, server-authoritative campaigns.", "Victory conditions, campaign length, offline behaviour."],
+    ["Multiplayer", "Diplomacy", "Not defined.", "Alliances, treaties and whether nations can share territory."],
+    ["Presentation", "Pixel look in 3D", "Dark, atmospheric 3D world with a pixel-texture finish.", "How far to push sprites and pixel styling, and the final UI style."]
+  ];
+  var decFilter = "All";
+  var df = document.getElementById("decFilter");
+  ["All"].concat(DEC.map(function (d) { return d[0]; }).filter(function (v, i, a) { return a.indexOf(v) === i; })).forEach(function (a) {
+    var b = h("button", null, a, df); b.type = "button"; b.dataset.f = a;
+    b.addEventListener("click", function () { decFilter = a; drawDec(); });
+  });
+  function drawDec() {
+    Array.prototype.forEach.call(df.children, function (b) { b.setAttribute("aria-pressed", b.dataset.f === decFilter); });
+    var l = document.getElementById("decList"); l.innerHTML = "";
+    DEC.filter(function (d) { return decFilter === "All" || d[0] === decFilter; }).forEach(function (d) {
+      var det = h("details", "dec", null, l);
+      h("summary", null, '<span class="area">' + d[0] + "</span><b>" + d[1] + "</b>" + chip("open"), det);
+      h("div", "body", "<div><b>Current direction</b><br>" + d[2] + "</div><div><b>Still to decide</b><br>" + d[3] + "</div>", det);
+    });
+  }
+
+  /* ---------------- rail highlight ---------------- */
+  var links = document.querySelectorAll(".rail a[href^='#']:not(.mark)");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) links.forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); });
+      });
+    }, { rootMargin: "-40% 0px -55% 0px" });
+    document.querySelectorAll("section.brief[id]").forEach(function (s) { io.observe(s); });
+  }
+
+  function drawAll() { drawHero(); drawLoop(); drawEcon(); drawMove(); drawZoom(); }
+  drawAll(); drawSys(); drawDec();
+  // Theme-dependent SVG colours follow the viewer's theme changes.
+  try {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+    new MutationObserver(drawAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
